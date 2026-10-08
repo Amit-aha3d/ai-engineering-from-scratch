@@ -2835,8 +2835,20 @@
       }
 
       if (!lessonPath) {
-        showError('No lesson path specified', 'Add ?path=phases/01-math-foundations/01-linear-algebra-intuition to the URL.');
-        return;
+        // Fall back to stored progress or the initial curriculum lesson
+        var defaultPath = 'phases/00-setup-and-tooling/01-dev-environment';
+        if (window.AIFSProgress && typeof window.AIFSProgress.getHistory === 'function') {
+          var history = window.AIFSProgress.getHistory();
+          if (history && history.length > 0 && history[0].path) {
+            defaultPath = history[0].path;
+          }
+        }
+        lessonPath = defaultPath;
+        if (window.history && window.history.replaceState) {
+          var fallbackUrl = new URL(window.location.href);
+          fallbackUrl.searchParams.set('path', lessonPath);
+          window.history.replaceState(null, '', fallbackUrl.pathname + fallbackUrl.search + fallbackUrl.hash);
+        }
       }
 
       if (window.AIFSProgress) {
